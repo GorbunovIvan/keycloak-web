@@ -1,6 +1,33 @@
 server:
   port: 8081
+#  url: ${spring.application.name}:${server.port}
+  url: http://localhost:${server.port}
 
 spring:
   application:
     name: keycloak-web
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: web-app
+            client-secret: M6LDFdma9kwrMnmrnuyx6Jnc69h575KP
+            scope: openid, profile
+            authorization-grant-type: authorization_code
+        provider:
+          keycloak:
+            issuer-uri: ${keycloak.server-url}/realms/${keycloak.realm}
+            user-name-attribute: preferred_username
+
+keycloak:
+  server-url: http://localhost:8080
+  realm: keycloak-web-realm
+  web-registration-name: "keycloak" # taken from "security.oauth2.client.registration.<>"
+
+## Not required
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        security: TRACE
