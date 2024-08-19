@@ -2,7 +2,14 @@ package org.example.service;
 
 import org.keycloak.common.util.KeycloakUriBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class KeycloakService {
@@ -51,5 +58,24 @@ public class KeycloakService {
                 .queryParam("post_logout_redirect_uri", String.format("%s/logout", serverURl))
                 .build(realm)
                 .toString();
+    }
+
+    public List<String> getCurrentUserRoles() {
+
+//        var authentication = (OAuth2AuthenticationToken) principal; // you could also autowire principal in the params
+        var authentication = (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return Collections.emptyList();
+        }
+
+        var principal = authentication.getPrincipal();
+
+        @SuppressWarnings("unchecked")
+        var realmAccess = (Map<String, Collection<String>>) principal.getAttribute("realm_access");
+        if (realmAccess == null) {
+            return Collections.emptyList();
+        }
+
+        return (List<String>) realmAccess.get("roles");
     }
 }
