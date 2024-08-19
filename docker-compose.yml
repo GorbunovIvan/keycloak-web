@@ -1,0 +1,38 @@
+services:
+
+  # Localhost - we need it to enabled seamless communication between Keycloak and services that use it as localhost
+  localhost:
+    image: alpine:latest
+    command: sleep infinity
+    ports:
+      - "8080:8080" # Keycloak port
+      - "8081:8081" # Web-service port
+
+  #  Keycloak
+  keycloak:
+    depends_on:
+      - localhost
+    image: quay.io/keycloak/keycloak:latest
+#    ports:
+#      - "8080:8080" # Commented out because ports are bound via the "localhost" service
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev
+    network_mode: "service:localhost"
+
+#  App
+  keycloak-web:
+    depends_on:
+      - localhost
+      - keycloak
+    image: ivangorbunovv/keycloak-web-image
+    container_name: keycloak-web
+#    ports:
+#      - "8081:8081" # Commented out because ports are bound via the "localhost" service
+    environment:
+      SPRING_APPLICATION_JSON: '{
+        "spring.security.oauth2.client.registration.keycloak.client-secret" : "ScDKmzOLJMtgwezJctEqzMDBjSWSZSfm"
+      }'
+    network_mode: "service:localhost"
